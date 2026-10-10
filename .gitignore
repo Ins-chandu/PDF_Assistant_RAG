@@ -1,0 +1,7 @@
+qdrant_storage
+data
+.env
+node_modules
+.codex
+server/storage
+server/uploads

@@ -1,0 +1,12 @@
+.git
+.gitignore
+.codex
+client/.git
+client/.next
+client/node_modules
+server/node_modules
+server/uploads
+server/storage
+data
+qdrant_storage
+.env

@@ -1,0 +1,15 @@
+{
+  "name": "pdf-with-chat-workspace",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @pdf-rag/web dev",
+    "dev:api": "pnpm --filter @pdf-rag/api dev",
+    "dev:worker": "pnpm --filter @pdf-rag/api dev:worker",
+    "build": "pnpm -r --filter @pdf-rag/web --filter @pdf-rag/api build",
+    "lint": "pnpm --filter @pdf-rag/web lint",
+    "compose:up": "docker compose up -d --build",
+    "compose:down": "docker compose down"
+  }
+}

@@ -1,0 +1,80 @@
+services:
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    depends_on:
+      - api
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-rag_documents}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-25}
+      RETRIEVAL_LIMIT: ${RETRIEVAL_LIMIT:-6}
+      RETRIEVAL_SCORE_THRESHOLD: ${RETRIEVAL_SCORE_THRESHOLD:-0.2}
+      UPLOAD_RETENTION_HOURS: ${UPLOAD_RETENTION_HOURS:-24}
+    depends_on:
+      - redis
+      - qdrant
+    ports:
+      - "${API_PORT:-4000}:4000"
+    volumes:
+      - ./server/storage:/app/storage
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    command: ["pnpm", "start:worker"]
+    environment:
+      NODE_ENV: production
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-rag_documents}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-25}
+      RETRIEVAL_LIMIT: ${RETRIEVAL_LIMIT:-6}
+      RETRIEVAL_SCORE_THRESHOLD: ${RETRIEVAL_SCORE_THRESHOLD:-0.2}
+      UPLOAD_RETENTION_HOURS: ${UPLOAD_RETENTION_HOURS:-24}
+    depends_on:
+      - redis
+      - qdrant
+    volumes:
+      - ./server/storage:/app/storage
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  qdrant_data:
